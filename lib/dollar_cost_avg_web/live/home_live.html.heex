@@ -1,0 +1,41 @@
+<div>
+  <h1>Stock Buying Strategy</h1>
+
+  <form phx-submit="calculate">
+    <label for="tickers">Tickers (comma separated):</label>
+    <input type="text" name="tickers" value={Enum.join(@tickers, ",")}/>
+
+    <label for="dca_low">Low DCA Threshold:</label>
+    <input type="number" step="0.01" name="dca_low" value={@dca_low}/>
+
+    <label for="dca_high">High DCA Threshold:</label>
+    <input type="number" step="0.01" name="dca_high" value={@dca_high}/>
+
+    <button type="submit">Calculate</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Daily High</th>
+        <th>Year High</th>
+        <th>High x <%= @dca_low %></th>
+        <th>High x <%= @dca_high %></th>
+        <th>Strategy</th>
+      </tr>
+    </thead>
+    <tbody>
+      <%= for result <- @results do %>
+        <tr>
+          <td><%= result.ticker %></td>
+          <td><%= result.daily_high %></td>
+          <td><%= result.high_52_week %></td>
+          <td><%= result.threshold_aggressive %></td>
+          <td><%= result.threshold_normal %></td>
+          <td><%= result.strategy %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
