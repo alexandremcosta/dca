@@ -1,7 +1,7 @@
 defmodule DollarCostAvgWeb.HomeLive do
-  use Phoenix.LiveView
+  use DollarCostAvgWeb, :live_view
   alias DollarCostAvg.Strategy
-
+ 
   def mount(_params, _session, socket) do
     # Default values
     socket =
@@ -12,7 +12,7 @@ defmodule DollarCostAvgWeb.HomeLive do
         results: []
       })
 
-    {:ok, socket}
+    {:ok, socket, layout: false}
   end
 
   def handle_event("calculate", %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high}, socket) do
