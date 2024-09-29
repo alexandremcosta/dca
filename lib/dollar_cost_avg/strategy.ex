@@ -1,17 +1,17 @@
 defmodule DollarCostAvg.Strategy do
-  def determine(ticker, threshold_low, threshold_high) do
+  def determine_strategy(ticker, threshold_low, threshold_high) do
     current_time = DateTime.utc_now()
     one_year_ago = DateTime.add(current_time, -365 * 24 * 60 * 60)
 
     current_time = DateTime.to_unix(current_time)
     one_year_ago = DateTime.to_unix(one_year_ago)
 
-    url = "https://query1.finance.yahoo.com/v8/finance/chart/#{ticker}"
-    path = "period2=#{current_time}&period1=#{one_year_ago}&interval=1d"
+    path = "?period2=#{current_time}&period1=#{one_year_ago}&interval=1d"
+    url = "https://query1.finance.yahoo.com/v8/finance/chart/#{ticker}" <> path
     proxy = build_proxy()
 
     response =
-      (url <> "?" path)
+      url
       |> URI.encode()
       |> Req.get!(connect_options: [proxy: proxy])
       |> Map.fetch!(:body)
@@ -21,21 +21,30 @@ defmodule DollarCostAvg.Strategy do
     high_52_week = Enum.max(first_indicator["high"])
     daily_high = first_result["meta"]["regularMarketDayHigh"]
 
-    strategy =
+    threshold_aggressive = high_52_week * threshold_low
+    threshold_normal = high_52_week * threshold_high
+
+    {strategy, color} =
       cond do
-        daily_high < high_52_week * threshold_low -> "Buy aggressively"
-        daily_high < high_52_week * threshold_high -> "Buy normally"
-        true -> "Don't buy"
+        daily_high < threshold_aggressive -> {"Buy aggressively", "blue"}
+        daily_high < threshold_normal -> {"Buy normally", "green"}
+        true -> {"Don't buy", "gray"}
       end
 
     %{
       ticker: ticker,
-      daily_high: daily_high,
-      high_52_week: high_52_week,
-      threshold_aggressive: threshold_aggressive,
-      threshold_normal: threshold_normal,
-      strategy: strategy
+      daily_high: float_to_dollar(daily_high),
+      high_52_week: float_to_dollar(high_52_week),
+      threshold_aggressive: float_to_dollar(threshold_aggressive),
+      threshold_normal: float_to_dollar(threshold_normal),
+      strategy: strategy,
+      color: color,
+      url: url
     }
+  end
+
+  defp float_to_dollar(float) do
+    "$#{:erlang.float_to_binary(float, decimals: 2)}"
   end
 
   defp build_proxy do

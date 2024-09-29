@@ -6,7 +6,7 @@ defmodule DollarCostAvgWeb.HomeLive do
     # Default values
     socket =
       assign(socket, %{
-        tickers: ["^GSPC", "AAPL", "AMZN", "GOOG", "MSFT", "NVDA", "PLTR", "TSLA"],
+        tickers: ["AAPL", "AMZN", "GOOG", "MSFT", "NVDA", "PLTR", "TSLA", "^GSPC"],
         dca_low: 0.80,
         dca_high: 0.98,
         results: []
@@ -16,7 +16,7 @@ defmodule DollarCostAvgWeb.HomeLive do
   end
 
   def handle_event("calculate", %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high}, socket) do
-    tickers = String.split(tickers, ",")
+    tickers = tickers |> String.replace(" ", "") |> String.upcase() |> String.split(",") |> Enum.uniq() |> Enum.sort()
     dca_low = String.to_float(dca_low)
     dca_high = String.to_float(dca_high)
 
@@ -24,6 +24,6 @@ defmodule DollarCostAvgWeb.HomeLive do
       Strategy.determine_strategy(ticker, dca_low, dca_high)
     end)
 
-    {:noreply, assign(socket, results: results)}
+    {:noreply, assign(socket, results: results, tickers: tickers)}
   end
 end
