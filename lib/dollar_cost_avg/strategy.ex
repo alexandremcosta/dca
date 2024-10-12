@@ -9,10 +9,10 @@ defmodule DollarCostAvg.Strategy do
     path = "?period2=#{current_time}&period1=#{one_year_ago}&interval=1d"
     url = "https://query1.finance.yahoo.com/v8/finance/chart/#{ticker}" <> path
 
-    with {:ok, response} <- url |> URI.encode() |> Req.get(req_options()) do
-      response = response.body
-      first_result = List.first(response["chart"]["result"])
-      first_indicator = List.first(first_result["indicators"]["quote"])
+    with {:ok, response} <- url |> URI.encode() |> Req.get(req_options()),
+         response = response.body,
+         [first_result | _] <- response["chart"]["result"],
+         [first_indicator | _] <- first_result["indicators"]["quote"] do
       high_52_week = Enum.max(first_indicator["high"])
       daily_high = first_result["meta"]["regularMarketDayHigh"]
 
@@ -37,6 +37,9 @@ defmodule DollarCostAvg.Strategy do
          color: color,
          url: url
        }}
+    else
+      {:error, request_error} -> {:error, request_error}
+      nil -> {:error, "not found"}
     end
   end
 

@@ -21,31 +21,46 @@ defmodule DollarCostAvgWeb.HomeLive do
         %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high},
         socket
       ) do
-    tickers =
-      tickers
-      |> String.replace(" ", "")
-      |> String.upcase()
-      |> String.split(",")
-      |> Enum.uniq()
-      |> Enum.sort()
-
+    tickers = parse_tickers(tickers)
     dca_low = String.to_float(dca_low)
     dca_high = String.to_float(dca_high)
 
-    results =
-      Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
-        case Strategy.determine_strategy(ticker, dca_low, dca_high) do
-          {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}
-          {:error, error} -> %{acc | error: [{ticker, error} | acc.error]}
-        end
-      end)
-
-    if Enum.any?(results.error) do
-      for {ticker, error} <- results.error do
-        Logger.error("Cannot calculate strategy for #{ticker}: #{inspect(error)}")
-      end
-    end
+    results = calculate_strategies(tickers, dca_low, dca_high)
+    socket = flash_errors(socket, results.error)
 
     {:noreply, assign(socket, results: results.ok, tickers: tickers)}
+  end
+
+  defp parse_tickers(tickers) do
+    tickers
+    |> String.replace(" ", "")
+    |> String.upcase()
+    |> String.split(",")
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+
+  defp calculate_strategies(tickers, dca_low, dca_high) do
+    Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
+      case Strategy.determine_strategy(ticker, dca_low, dca_high) do
+        {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}
+        {:error, error} -> %{acc | error: [{ticker, error} | acc.error]}
+      end
+    end)
+  end
+
+  defp flash_errors(socket, errors) do
+    errors =
+      for {ticker, error} <- errors do
+        msg = "Cannot calculate strategy for #{ticker}: #{inspect(error)}"
+        Logger.error(msg)
+        raw("<p>#{msg}</p>")
+      end
+
+    if Enum.any?(errors) do
+      put_flash(socket, :error, Enum.intersperse(errors, raw("<br>")))
+    else
+      socket
+    end
   end
 end
