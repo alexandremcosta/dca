@@ -1,7 +1,8 @@
 defmodule DollarCostAvgWeb.HomeLive do
   use DollarCostAvgWeb, :live_view
   alias DollarCostAvg.Strategy
- 
+  require Logger
+
   def mount(_params, _session, socket) do
     # Default values
     socket =
@@ -15,15 +16,36 @@ defmodule DollarCostAvgWeb.HomeLive do
     {:ok, socket, layout: false}
   end
 
-  def handle_event("calculate", %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high}, socket) do
-    tickers = tickers |> String.replace(" ", "") |> String.upcase() |> String.split(",") |> Enum.uniq() |> Enum.sort()
+  def handle_event(
+        "calculate",
+        %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high},
+        socket
+      ) do
+    tickers =
+      tickers
+      |> String.replace(" ", "")
+      |> String.upcase()
+      |> String.split(",")
+      |> Enum.uniq()
+      |> Enum.sort()
+
     dca_low = String.to_float(dca_low)
     dca_high = String.to_float(dca_high)
 
-    results = Enum.map(tickers, fn ticker ->
-      Strategy.determine_strategy(ticker, dca_low, dca_high)
-    end)
+    results =
+      Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
+        case Strategy.determine_strategy(ticker, dca_low, dca_high) do
+          {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}
+          {:error, error} -> %{acc | error: [{ticker, error} | acc.error]}
+        end
+      end)
 
-    {:noreply, assign(socket, results: results, tickers: tickers)}
+    if Enum.any?(results.error) do
+      for {ticker, error} <- results.error do
+        Logger.error("Cannot calculate strategy for #{ticker}: #{inspect(error)}")
+      end
+    end
+
+    {:noreply, assign(socket, results: results.ok, tickers: tickers)}
   end
 end

@@ -8,59 +8,60 @@ defmodule DollarCostAvg.Strategy do
 
     path = "?period2=#{current_time}&period1=#{one_year_ago}&interval=1d"
     url = "https://query1.finance.yahoo.com/v8/finance/chart/#{ticker}" <> path
-    proxy = build_proxy()
 
-    response =
-      url
-      |> URI.encode()
-      |> Req.get!(connect_options: [proxy: proxy])
-      |> Map.fetch!(:body)
+    with {:ok, response} <- url |> URI.encode() |> Req.get(req_options()) do
+      response = response.body
+      first_result = List.first(response["chart"]["result"])
+      first_indicator = List.first(first_result["indicators"]["quote"])
+      high_52_week = Enum.max(first_indicator["high"])
+      daily_high = first_result["meta"]["regularMarketDayHigh"]
 
-    first_result = List.first(response["chart"]["result"])
-    first_indicator = List.first(first_result["indicators"]["quote"])
-    high_52_week = Enum.max(first_indicator["high"])
-    daily_high = first_result["meta"]["regularMarketDayHigh"]
+      threshold_aggressive = high_52_week * threshold_low
+      threshold_normal = high_52_week * threshold_high
 
-    threshold_aggressive = high_52_week * threshold_low
-    threshold_normal = high_52_week * threshold_high
+      {strategy, color} =
+        cond do
+          daily_high < threshold_aggressive -> {"Buy aggressively", "blue"}
+          daily_high < threshold_normal -> {"Buy normally", "green"}
+          true -> {"Don't buy", "gray"}
+        end
 
-    {strategy, color} =
-      cond do
-        daily_high < threshold_aggressive -> {"Buy aggressively", "blue"}
-        daily_high < threshold_normal -> {"Buy normally", "green"}
-        true -> {"Don't buy", "gray"}
-      end
-
-    %{
-      ticker: ticker,
-      daily_high: float_to_dollar(daily_high),
-      high_52_week: float_to_dollar(high_52_week),
-      threshold_aggressive: float_to_dollar(threshold_aggressive),
-      threshold_normal: float_to_dollar(threshold_normal),
-      strategy: strategy,
-      color: color,
-      url: url
-    }
+      {:ok,
+       %{
+         ticker: ticker,
+         daily_high: float_to_dollar(daily_high),
+         high_52_week: float_to_dollar(high_52_week),
+         threshold_aggressive: float_to_dollar(threshold_aggressive),
+         threshold_normal: float_to_dollar(threshold_normal),
+         strategy: strategy,
+         color: color,
+         url: url
+       }}
+    end
   end
 
   defp float_to_dollar(float) do
     "$#{:erlang.float_to_binary(float, decimals: 2)}"
   end
 
-  defp build_proxy do
+  defp req_options do
     https_proxy = System.get_env("HTTPS_PROXY")
     http_proxy = System.get_env("HTTP_PROXY")
 
-    cond do
-      https_proxy ->
-        parse_proxy(https_proxy)
+    proxy =
+      cond do
+        https_proxy ->
+          parse_proxy(https_proxy)
 
-      http_proxy ->
-        parse_proxy(http_proxy)
+        http_proxy ->
+          parse_proxy(http_proxy)
 
-      true ->
-        nil
-    end
+        true ->
+          nil
+      end
+
+    options = if proxy, do: [proxy: proxy], else: []
+    [connect_options: options]
   end
 
   defp parse_proxy(proxy_url) do

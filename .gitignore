@@ -35,3 +35,4 @@ dollar_cost_avg-*.tar
 npm-debug.log
 /assets/node_modules/
 
+.aider*
