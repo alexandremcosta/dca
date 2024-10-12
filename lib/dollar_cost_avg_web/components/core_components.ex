@@ -15,9 +15,8 @@ defmodule DollarCostAvgWeb.CoreComponents do
   Icons are provided by [heroicons](https://heroicons.com). See `icon/1` for usage.
   """
   use Phoenix.Component
-
   alias Phoenix.LiveView.JS
-  import DollarCostAvgWeb.Gettext
+  use Gettext, backend: DollarCostAvgWeb.Gettext
 
   @doc """
   Renders a modal.
@@ -36,6 +35,7 @@ defmodule DollarCostAvgWeb.CoreComponents do
       </.modal>
 
   """
+
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}

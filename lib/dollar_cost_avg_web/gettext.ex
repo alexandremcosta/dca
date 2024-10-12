@@ -20,5 +20,5 @@ defmodule DollarCostAvgWeb.Gettext do
 
   See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
   """
-  use Gettext, otp_app: :dollar_cost_avg
+  use Gettext.Backend, otp_app: :dollar_cost_avg
 end
