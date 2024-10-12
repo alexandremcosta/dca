@@ -20,6 +20,8 @@
         <input
           type="number"
           step="0.01"
+          max="1"
+          min="0"
           name="dca_low"
           value={@dca_low}
           class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -30,6 +32,8 @@
         <input
           type="number"
           step="0.01"
+          max="1"
+          min="0"
           name="dca_high"
           value={@dca_high}
           class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -88,7 +92,7 @@
             <td class="px-4 py-2 border text-right"><%= result.threshold_normal %></td>
             <td class="px-4 py-2 border">
               <div class="relative group">
-                <span class="cursor-help"><%= result.strategy %></span>
+                <span class="cursor-help"><u><%= result.strategy %></u></span>
                 <div class="absolute z-10 w-64 px-4 py-2 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
                   <%= case result.strategy do %>
                     <% "Don't buy" -> %>
