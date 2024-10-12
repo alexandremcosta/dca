@@ -13,3 +13,4 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 - Save preferences on session
 - Cache requests
+- Deploy

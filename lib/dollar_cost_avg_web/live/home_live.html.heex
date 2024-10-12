@@ -73,9 +73,9 @@
         <tr class="bg-gray-300">
           <th class="px-4 py-2 border">Ticker</th>
           <th class="px-4 py-2 border">Daily High</th>
-          <th class="px-4 py-2 border">Year High</th>
           <th class="px-4 py-2 border">High x <%= @dca_low %></th>
           <th class="px-4 py-2 border">High x <%= @dca_high %></th>
+          <th class="px-4 py-2 border">Year High</th>
           <th class="px-4 py-2 border">Strategy</th>
         </tr>
       </thead>
@@ -87,9 +87,13 @@
           <tr class={"hover:bg-" <> result.color <> "-200 bg-" <> result.color <> "-100"}>
             <td class="px-4 py-2 border"><%= result.ticker %></td>
             <td class="px-4 py-2 border text-right"><%= result.daily_high %></td>
+            <td class={"px-4 py-2 border text-right" <> (if result.strategy == "Don't buy", do: " text-gray-300", else: "")}>
+              <%= result.threshold_aggressive %>
+            </td>
+            <td class={"px-4 py-2 border text-right" <> (if result.strategy == "Buy aggressively", do: " text-gray-300", else: "")}>
+              <%= result.threshold_normal %>
+            </td>
             <td class="px-4 py-2 border text-right"><%= result.high_52_week %></td>
-            <td class="px-4 py-2 border text-right"><%= result.threshold_aggressive %></td>
-            <td class="px-4 py-2 border text-right"><%= result.threshold_normal %></td>
             <td class="px-4 py-2 border">
               <div class="relative group">
                 <span class="cursor-help"><u><%= result.strategy %></u></span>
