@@ -19,6 +19,8 @@ defmodule DollarCostAvg.Application do
       DollarCostAvgWeb.Endpoint
     ]
 
+    DollarCostAvg.Strategy.create_cache()
+
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: DollarCostAvg.Supervisor]
