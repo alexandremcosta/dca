@@ -79,15 +79,15 @@
     </div>
   </form>
   <%= if Enum.any?(@results) do %>
-    <table class="w-full table-auto border-collapse text-left text-sm">
+    <table class="shadow w-full table-auto border-collapse text-left text-sm">
       <thead>
         <tr class="bg-gray-300">
-          <th class="px-4 py-2 border">Ticker</th>
-          <th class="px-4 py-2 border">Day High</th>
-          <th class="px-4 py-2 border">Year High x <%= @dca_low %></th>
-          <th class="px-4 py-2 border">Year High x <%= @dca_high %></th>
-          <th class="px-4 py-2 border">Year High</th>
-          <th class="px-4 py-2 border">Strategy</th>
+          <th class="px-4 py-2"></th>
+          <th class="px-4 py-2 text-right">Day High</th>
+          <th class="px-4 py-2 text-right">Year High x <%= @dca_low %></th>
+          <th class="px-4 py-2 text-right">Year High x <%= @dca_high %></th>
+          <th class="px-4 py-2 text-right">Year High</th>
+          <th class="px-4 py-2"></th>
         </tr>
       </thead>
       <tbody>
@@ -96,16 +96,16 @@
           <span class="bg-yellow-100 bg-green-100 bg-blue-100 hover:bg-yellow-200 hover:bg-green-200 hover:bg-blue-200">
           </span>
           <tr class={"hover:bg-" <> result.color <> "-200 bg-" <> result.color <> "-100"}>
-            <td class="px-4 py-2 border"><%= result.ticker %></td>
-            <td class="px-4 py-2 border text-right"><%= result.daily_high %></td>
-            <td class={"px-4 py-2 border text-right" <> (if result.strategy == "Buy less", do: " text-gray-300", else: "")}>
+            <td class="px-4 py-2"><%= result.ticker %></td>
+            <td class="px-4 py-2 text-right"><%= result.daily_high %></td>
+            <td class={"px-4 py-2 text-right" <> (if result.strategy == "Buy less", do: " text-gray-300", else: "")}>
               <%= result.threshold_aggressive %>
             </td>
-            <td class={"px-4 py-2 border text-right" <> (if result.strategy == "Buy more", do: " text-gray-300", else: "")}>
+            <td class={"px-4 py-2 text-right" <> (if result.strategy == "Buy more", do: " text-gray-300", else: "")}>
               <%= result.threshold_normal %>
             </td>
-            <td class="px-4 py-2 border text-right"><%= result.high_52_week %></td>
-            <td class="px-4 py-2 border">
+            <td class="px-4 py-2 text-right"><%= result.high_52_week %></td>
+            <td class="px-4 py-2">
               <div class="relative group">
                 <span class="cursor-help"><u><%= result.strategy %></u></span>
                 <div class="absolute z-10 w-64 px-4 py-2 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
