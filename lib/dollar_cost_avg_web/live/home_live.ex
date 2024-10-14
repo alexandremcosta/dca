@@ -42,7 +42,7 @@ defmodule DollarCostAvgWeb.HomeLive do
 
   defp calculate_strategies(tickers, dca_low, dca_high) do
     Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
-      case Strategy.determine_strategy(ticker, dca_low, dca_high) do
+      case Strategy.fetch_strategy(ticker, dca_low, dca_high) do
         {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}
         {:error, error} -> %{acc | error: [{ticker, error} | acc.error]}
       end

@@ -1,15 +1,15 @@
 defmodule DollarCostAvg.Strategy do
-  def determine_strategy(ticker, threshold_low, threshold_high) do
+  defstruct ~w(ticker daily_high high_52_week threshold_aggressive threshold_normal strategy color url)a
+
+  def fetch_strategy(ticker, threshold_low, threshold_high) do
     with {:ok, ticker_prices} <- fetch_day_and_year_high(ticker) do
       {:ok, calculate_strategy(ticker_prices, threshold_low, threshold_high, ticker)}
     end
   end
 
   defp fetch_day_and_year_high(ticker) do
-    url = build_url(ticker)
-
     fetch_cache(ticker, fn ->
-      with {:ok, response} <- url |> URI.encode() |> Req.get(req_options()),
+      with {:ok, response} <- ticker |> build_url() |> URI.encode() |> Req.get(req_options()),
            response_body = response.body,
            [first_result | _] <- response_body["chart"]["result"],
            [first_indicator | _] <- first_result["indicators"]["quote"] do
@@ -45,7 +45,7 @@ defmodule DollarCostAvg.Strategy do
     conservative_limit = year_high * threshold_high
     {strategy, color} = get_strategy_color(day_high, aggressive_limit, conservative_limit)
 
-    %{
+    %__MODULE__{
       ticker: ticker,
       daily_high: float_to_dollar(day_high),
       high_52_week: float_to_dollar(year_high),
