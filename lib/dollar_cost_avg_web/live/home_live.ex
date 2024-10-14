@@ -16,25 +16,27 @@ defmodule DollarCostAvgWeb.HomeLive do
     {:ok, socket, layout: false}
   end
 
+  def handle_params(params, _uri, socket) do
+    tickers = parse_tickers(params["tickers"] || socket.assigns.tickers)
+    dca_low = parse_float(params["dca_low"], socket.assigns.dca_low)
+    dca_high = parse_float(params["dca_high"], socket.assigns.dca_high)
+
+    socket = assign(socket, tickers: tickers, dca_low: dca_low, dca_high: dca_high)
+    socket = if params["tickers"], do: calculate_strategies(socket), else: socket
+
+    {:noreply, socket}
+  end
+
   def handle_event(
         "calculate",
         %{"tickers" => tickers, "dca_low" => dca_low, "dca_high" => dca_high},
         socket
       ) do
-    tickers = parse_tickers(tickers)
-    dca_low = String.to_float(dca_low)
-    dca_high = String.to_float(dca_high)
-    %{ok: strategies, error: errors} = calculate_strategies(tickers, dca_low, dca_high)
-
-    socket =
-      socket
-      |> flash_errors(errors)
-      |> assign(results: strategies, tickers: tickers, dca_low: dca_low, dca_high: dca_high)
-
-    {:noreply, socket}
+    {:noreply,
+     push_patch(socket, to: ~p"/?#{[tickers: tickers, dca_low: dca_low, dca_high: dca_high]}")}
   end
 
-  defp parse_tickers(tickers) do
+  defp parse_tickers(tickers) when is_binary(tickers) do
     tickers
     |> String.replace(" ", "")
     |> String.upcase()
@@ -44,7 +46,27 @@ defmodule DollarCostAvgWeb.HomeLive do
     |> Enum.sort()
   end
 
-  defp calculate_strategies(tickers, dca_low, dca_high) do
+  defp parse_tickers(tickers) when is_list(tickers), do: tickers
+
+  defp parse_float(value, default) when is_binary(value) do
+    case Float.parse(value) do
+      {float, _} -> float
+      :error -> default
+    end
+  end
+
+  defp parse_float(_, default), do: default
+
+  defp calculate_strategies(socket) do
+    %{tickers: tickers, dca_low: dca_low, dca_high: dca_high} = socket.assigns
+    %{ok: strategies, error: errors} = do_calculate_strategies(tickers, dca_low, dca_high)
+
+    socket
+    |> flash_errors(errors)
+    |> assign(results: strategies)
+  end
+
+  defp do_calculate_strategies(tickers, dca_low, dca_high) do
     Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
       case Strategy.fetch_strategy(ticker, dca_low, dca_high) do
         {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}

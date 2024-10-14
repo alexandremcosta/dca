@@ -11,6 +11,6 @@ Ready to run in production? Please [check our deployment guides](https://hexdocs
 
 ## TODO
 
-- Save preferences on session
-- Cache requests
+- [x] Allow bookmarks with querystrings
+- [x] Cache requests
 - Deploy
