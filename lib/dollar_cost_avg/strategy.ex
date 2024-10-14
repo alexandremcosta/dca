@@ -67,9 +67,9 @@ defmodule DollarCostAvg.Strategy do
 
   defp get_strategy_color(daily_high, aggressive_limit, conservative_limit) do
     cond do
-      daily_high < aggressive_limit -> {"Buy aggressively", "blue"}
+      daily_high < aggressive_limit -> {"Buy more", "blue"}
       daily_high < conservative_limit -> {"Buy normally", "green"}
-      true -> {"Don't buy", "gray"}
+      true -> {"Buy less", "yellow"}
     end
   end
 

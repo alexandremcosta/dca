@@ -24,11 +24,14 @@ defmodule DollarCostAvgWeb.HomeLive do
     tickers = parse_tickers(tickers)
     dca_low = String.to_float(dca_low)
     dca_high = String.to_float(dca_high)
+    %{ok: strategies, error: errors} = calculate_strategies(tickers, dca_low, dca_high)
 
-    results = calculate_strategies(tickers, dca_low, dca_high)
-    socket = flash_errors(socket, results.error)
+    socket =
+      socket
+      |> flash_errors(errors)
+      |> assign(results: strategies, tickers: tickers, dca_low: dca_low, dca_high: dca_high)
 
-    {:noreply, assign(socket, results: results.ok, tickers: tickers)}
+    {:noreply, socket}
   end
 
   defp parse_tickers(tickers) do
@@ -36,6 +39,7 @@ defmodule DollarCostAvgWeb.HomeLive do
     |> String.replace(" ", "")
     |> String.upcase()
     |> String.split(",")
+    |> Enum.reject(&(&1 == ""))
     |> Enum.uniq()
     |> Enum.sort()
   end
