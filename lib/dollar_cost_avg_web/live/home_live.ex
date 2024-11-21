@@ -67,11 +67,13 @@ defmodule DollarCostAvgWeb.HomeLive do
   end
 
   defp do_calculate_strategies(tickers, dca_low, dca_high) do
-    Enum.reduce(tickers, %{ok: [], error: []}, fn ticker, acc ->
-      case Strategy.fetch_strategy(ticker, dca_low, dca_high) do
-        {:ok, strategy} -> %{acc | ok: [strategy | acc.ok]}
-        {:error, error} -> %{acc | error: [{ticker, error} | acc.error]}
-      end
+    tickers
+    |> Task.async_stream(fn ticker ->
+      {ticker, Strategy.fetch_strategy(ticker, dca_low, dca_high)}
+    end)
+    |> Enum.reduce(%{ok: [], error: []}, fn
+      {:ok, {_ticker, {:ok, strategy}}}, acc -> %{acc | ok: [strategy | acc.ok]}
+      {:ok, {ticker, {:error, error}}}, acc -> %{acc | error: [{ticker, error} | acc.error]}
     end)
   end
 
