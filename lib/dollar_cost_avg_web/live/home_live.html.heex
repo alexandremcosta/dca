@@ -83,44 +83,59 @@
       <thead>
         <tr class="bg-gray-300">
           <th class="px-4 py-2"></th>
-          <th class="px-4 py-2 text-right">Day High</th>
-          <th class="px-4 py-2 text-right">Year High x <%= @dca_low %></th>
-          <th class="px-4 py-2 text-right">Year High x <%= @dca_high %></th>
-          <th class="px-4 py-2 text-right">Year High</th>
+          <th class="px-4 py-2 text-center">Year High x <%= @dca_low %></th>
+          <th></th>
+          <th class="px-4 py-2 text-center">Day High</th>
+          <th></th>
+          <th class="px-4 py-2 text-center">Year High x <%= @dca_high %></th>
           <th class="px-4 py-2"></th>
         </tr>
       </thead>
       <tbody>
         <%= for result <- @results do %>
           <!-- placeholder span to force tailwind to generate those classes on dev -->
-          <span class="bg-yellow-100 bg-green-100 bg-blue-100 hover:bg-yellow-200 hover:bg-green-200 hover:bg-blue-200">
+          <span class="bg-yellow-100 bg-green-100 bg-gray-100 hover:bg-yellow-200 hover:bg-green-200 hover:bg-gray-200">
           </span>
           <tr class={"hover:bg-" <> result.color <> "-200 bg-" <> result.color <> "-100"}>
             <td class="px-4 py-2"><%= result.ticker %></td>
-            <td class="px-4 py-2 text-right"><%= result.daily_high %></td>
-            <td class={"px-4 py-2 text-right" <> (if result.strategy == "Buy less", do: " text-gray-300", else: "")}>
-              <%= result.threshold_aggressive %>
+            <td class="px-4 py-2 text-center">
+              <%= if result.daily_high < result.threshold_normal do %>
+                <%= result.threshold_aggressive %>
+              <% end %>
             </td>
-            <td class={"px-4 py-2 text-right" <> (if result.strategy == "Buy more", do: " text-gray-300", else: "")}>
-              <%= result.threshold_normal %>
-            </td>
-            <td class="px-4 py-2 text-right"><%= result.high_52_week %></td>
             <td class="px-4 py-2">
-              <div class="relative group">
-                <span class="cursor-help"><u><%= result.strategy %></u></span>
-                <div class="absolute z-10 w-64 px-4 py-2 text-sm text-gray-500 transition-opacity duration-300 bg-white border border-gray-200 rounded-lg shadow-sm opacity-0 group-hover:opacity-100 bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
-                  <%= case result.strategy do %>
-                    <% "Buy less" -> %>
-                      The daily high (<%= result.daily_high %>) is above the high threshold (<%= result.threshold_normal %>). When price is high, be more careful.
-                    <% "Buy more" -> %>
-                      The daily high (<%= result.daily_high %>) is below the low threshold (<%= result.threshold_aggressive %>). This presents a potentially good buying opportunity.
-                    <% _ -> %>
-                      The daily high (<%= result.daily_high %>) is between the low (<%= result.threshold_aggressive %>) and high (<%= result.threshold_normal %>) thresholds. Consider buying at your regular pace.
-                  <% end %>
-                  <div class="absolute w-3 h-3 bg-white border-t border-r border-gray-200 transform rotate-45 -bottom-1.5 left-1/2 -translate-x-1/2">
-                  </div>
-                </div>
-              </div>
+              <%= if result.daily_high < result.threshold_normal do %>
+                <%= if result.threshold_aggressive < result.daily_high do %>
+                  &lt;
+                <% else %>
+                  &gt;
+                <% end %>
+              <% end %>
+            </td>
+            <td class="px-4 py-2 text-center"><%= result.daily_high %></td>
+            <td class="px-4 py-2">
+              <%= if result.threshold_aggressive < result.daily_high do %>
+                <%= if result.daily_high < result.threshold_normal do %>
+                  &lt;
+                <% else %>
+                  &gt;
+                <% end %>
+              <% end %>
+            </td>
+            <td class="px-4 py-2 text-center">
+              <%= if result.threshold_aggressive < result.daily_high do %>
+                <%= result.threshold_normal %>
+              <% end %>
+            </td>
+            <td class="px-4 py-2 text-xs">
+              <%= result.strategy %>
+              <%= case result.strategy do %>
+                <% "Buy less" -> %>
+                  (it's expensive)
+                <% "Buy more" -> %>
+                  (it's cheap)
+                <% _ -> %>
+              <% end %>
             </td>
           </tr>
         <% end %>
